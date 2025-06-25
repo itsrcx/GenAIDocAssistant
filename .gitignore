@@ -1,0 +1,11 @@
+check*
+.venv
+.env
+
+*.pyc
+__pycache__
+*.pyo
+*.pyd
+*.pdb
+*.egg*
+*.whl
