@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  gen-ai-doc-assistant
+
+  Sample SAM Template for gen-ai-doc-assistant
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.13
+    Architectures:
+      - x86_64
+
+Resources:
+
+  GenAiDocAssistantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src.main.handler
+      Events:
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - AmazonS3FullAccess
+
+  GenAiDocAssistantApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+    DependsOn: GenAiDocAssistantFunction
+
+Outputs:
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for dev stage "
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/dev/docs/"
+  GenAiDocAssistantFunction:
+    Description: "GenAiDocAssistantFunction Function ARN"
+    Value: !GetAtt GenAiDocAssistantFunction.Arn
+  GenAiDocAssistantFunctionIamRole:
+    Description: "Implicit IAM Role created for GenAiDocAssistantFunction"
+    Value: !GetAtt GenAiDocAssistantFunctionRole.Arn

@@ -1,5 +1,7 @@
 from enum import Enum, member
 
+from src.schemas.standard import ErrorResponse
+
 class Document(str, Enum):
     TXT = "txt"
     CSV = "csv"
@@ -18,3 +20,6 @@ class Image(str, Enum):
 class SupportedFileType(Enum):
     DOCUMENT = member(Document)
     IMAGE = member(Image)
+
+BAD_REQUEST = {"model": ErrorResponse, "description": "Bad Request"}
+UNAUTHORIZED = {"model": ErrorResponse, "description": "Unauthorized"}

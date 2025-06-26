@@ -1,10 +1,8 @@
-import httpx
-
+from mangum import Mangum
 from fastapi import FastAPI, APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import APIKeyHeader
 
-from src.config import (
+from src.settings.config import (
     API_STAGE_NAME,
     RESOURCE_PATH,
     COGNITO_DOMAIN,
@@ -12,52 +10,55 @@ from src.config import (
     CLIENT_SECRET,
     API_STAGE_URL
 )
-from src.routers.s3upload import router as s3upload
+from src.settings.security import api_key_header
+from src.api.auth import router as auth_router
 
-api_key_header = APIKeyHeader(name="Authorization")
 
-def verify_jwt(token: str = Depends(api_key_header)):
-    return token 
+root_path = f"/{API_STAGE_NAME}/{RESOURCE_PATH}" if RESOURCE_PATH else f"/{API_STAGE_NAME}"
 
 app = FastAPI(
-    title=f"Python Apis",
-    description="S3 presigned URL generator",
+    title="Gen AI Document Assistant",
+    description="These are the endpoints for the Gen AI Document Assistant.",
     version="0.1",
-    root_path=f"/{API_STAGE_NAME}/{RESOURCE_PATH}",
+    root_path=root_path,
     default_response_class=JSONResponse
 )
 
-v1_router = APIRouter(dependencies=[Depends(api_key_header)])
-v1_router.include_router(s3upload)
+app.include_router(auth_router, prefix=f"/api/auth")
 
-
-app.include_router(v1_router)
-
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"message": "Welcome to the Gen AI Document Assistant API!"}
 
 @app.get("/health", include_in_schema=False)
 async def health():
     return {"status": "Ok!"}
 
-@app.get("/callback", include_in_schema=False)
-async def cognito_callback(request: Request):
-    code = request.query_params.get("code")
-    REDIRECT_URI = f"{API_STAGE_URL}/{RESOURCE_PATH}/callback"
+# @app.get("/callback", include_in_schema=False)
+# async def cognito_callback(request: Request):
+#     code = request.query_params.get("code")
+#     REDIRECT_URI = f"{API_STAGE_URL}/{RESOURCE_PATH}/callback"
 
-    if not code:
-        return {"error": "Missing code"}
+#     if not code:
+#         return {"error": "Missing code"}
 
-    token_url = f"{COGNITO_DOMAIN}/oauth2/token"
-    data = {
-        "grant_type": "authorization_code",
-        "client_id": CLIENT_ID,
-        "code": code,
-        "redirect_uri": REDIRECT_URI
-    }
-    auth = (CLIENT_ID, CLIENT_SECRET)
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+#     token_url = f"{COGNITO_DOMAIN}/oauth2/token"
+#     data = {
+#         "grant_type": "authorization_code",
+#         "client_id": CLIENT_ID,
+#         "code": code,
+#         "redirect_uri": REDIRECT_URI
+#     }
+#     auth = (CLIENT_ID, CLIENT_SECRET)
+# headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(token_url, data=data, headers=headers, auth=auth)
-        tokens = response.json()
+# async with httpx.AsyncClient() as client:
+#     response = await client.post(token_url, data=data, headers=headers, auth=auth)
+#     tokens = response.json()
 
-    return tokens
+# return tokens
+
+if RESOURCE_PATH:
+    handler = Mangum(app, api_gateway_base_path=f"/{RESOURCE_PATH}")
+else:
+    handler = Mangum(app)

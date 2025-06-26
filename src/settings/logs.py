@@ -1,11 +1,5 @@
 import logging
 
-from mangum import Mangum
-
-from src.config import RESOURCE_PATH
-from src.main import app
-
-
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
@@ -17,6 +11,3 @@ if not root_logger.handlers:
     )
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
-
-
-handler = Mangum(app, api_gateway_base_path=f"/{RESOURCE_PATH}")

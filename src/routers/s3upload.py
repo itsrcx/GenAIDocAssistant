@@ -4,8 +4,8 @@ from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException
 
-from src.config import AWS_REGION, S3_BUCKET, UPLOAD_DIR, boto3_session
-from src.routers.constants import SupportedFileType
+from src.settings.config import AWS_REGION, S3_BUCKET, UPLOAD_DIR, boto3_session
+from src.settings.constants import SupportedFileType
 
 router = APIRouter(
     tags=["S3 Upload"],
