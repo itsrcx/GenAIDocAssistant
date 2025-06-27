@@ -10,7 +10,6 @@ from src.schemas.auth import (
     ConfirmSignupInput,
 )
 from src.schemas.standard import SuccessResponse
-from src.settings.constants import BAD_REQUEST, UNAUTHORIZED
 from src.settings.security import bearer_auth
 from src.utils.auth import handle_client_error
 from src.docs.cognito import generate_responses_for_errors
