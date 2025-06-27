@@ -13,6 +13,7 @@ from src.schemas.standard import SuccessResponse
 from src.settings.constants import BAD_REQUEST, UNAUTHORIZED
 from src.settings.security import bearer_auth
 from src.utils.auth import handle_client_error
+from src.docs.cognito import generate_responses_for_errors
 
 
 router = APIRouter(tags=["authentication"])
@@ -22,9 +23,11 @@ router = APIRouter(tags=["authentication"])
     "/signup",
     response_model=SuccessResponse,
     status_code=status.HTTP_201_CREATED,
-    responses={
-        400: BAD_REQUEST,
-    },
+    responses=generate_responses_for_errors([
+        "UsernameExistsException",
+        "InvalidPasswordException",
+        "TooManyRequestsException"
+    ]),
 )
 @handle_client_error("Signup failed!")
 def signup(user: AuthInput):
@@ -39,9 +42,10 @@ def signup(user: AuthInput):
     "/confirm-signup",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-    },
+    responses=generate_responses_for_errors([
+        "ExpiredCodeException",
+        "TooManyRequestsException"
+    ])
 )
 @handle_client_error("Confirm signup failed!")
 def confirm_signup(data: ConfirmSignupInput):
@@ -56,9 +60,10 @@ def confirm_signup(data: ConfirmSignupInput):
     "/login",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-    },
+    responses=generate_responses_for_errors([
+        "NotAuthorizedException",
+        "TooManyRequestsException"
+    ])
 )
 @handle_client_error("Login failed!")
 def login(user: AuthInput):
@@ -73,9 +78,10 @@ def login(user: AuthInput):
     "/forgot-password",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-    },
+    responses=generate_responses_for_errors([
+        "InvalidParameterException"
+        "TooManyRequestsException"
+    ]),
 )
 @handle_client_error("Forgot password failed!")
 def forgot_password(data: ForgotPasswordInput):
@@ -89,9 +95,11 @@ def forgot_password(data: ForgotPasswordInput):
     "/reset-password",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-    },
+    responses=generate_responses_for_errors([
+        "ExpiredCodeException",
+        "InvalidPasswordException",
+        "TooManyRequestsException"
+    ])
 )
 @handle_client_error("Reset password failed!")
 def reset_password(data: ResetPasswordInput):
@@ -109,10 +117,11 @@ def reset_password(data: ResetPasswordInput):
     "/change-password",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-        401: UNAUTHORIZED,
-    },
+    responses=generate_responses_for_errors([
+        "NotAuthorizedException",
+        "InvalidPasswordException",
+        "TooManyRequestsException"
+    ]),
 )
 @handle_client_error("Change password failed!")
 def change_password(
@@ -130,10 +139,10 @@ def change_password(
     "/logout",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        400: BAD_REQUEST,
-        401: UNAUTHORIZED,
-    },
+    responses=generate_responses_for_errors([
+        "NotAuthorizedException",
+        "TooManyRequestsException"
+    ]),
 )
 @handle_client_error("Logout failed!")
 def logout(token: HTTPAuthorizationCredentials = Depends(bearer_auth)):

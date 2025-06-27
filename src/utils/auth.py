@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 import hmac, hashlib, base64
 
 from src.settings.config import CLIENT_ID, CLIENT_SECRET
+from src.docs.cognito import COGNITO_ERROR_MAP
 
 def get_secret_hash(username: str) -> str:
     message = username + CLIENT_ID
@@ -24,13 +25,19 @@ def handle_client_error(default_message: str, http_status: int = status.HTTP_400
             try:
                 return func(*args, **kwargs)
             except ClientError as e:
+                error_code = e.response["Error"]["Code"]
+                mapped_status, mapped_message = COGNITO_ERROR_MAP.get(
+                    error_code, 
+                    (http_status, default_message)
+                )
+
                 return JSONResponse(
-                    status_code=http_status,
+                    status_code=mapped_status,
                     content={
                         "status": "failed",
-                        "message": default_message,
-                        "error": "ClientError",
-                        "details": str(e),
+                        "message": mapped_message,
+                        "error": error_code,
+                        "details": e.response["Error"].get("Message", str(e)),
                     },
                 )
         return wrapper

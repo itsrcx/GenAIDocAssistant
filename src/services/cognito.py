@@ -1,10 +1,10 @@
 from botocore.exceptions import ClientError
 
-from src.settings.config import COGNITO_DOMAIN, USER_POOL_ID, CLIENT_ID, boto3_session
+from src.settings.config import COGNITO_DOMAIN, USER_POOL_ID, CLIENT_ID, AWS_REGION, boto3_session
 from src.utils.auth import get_secret_hash
 
 
-cognito = boto3_session.client("cognito-idp")
+cognito = boto3_session.client("cognito-idp", region_name=AWS_REGION)
 
 
 def signup_user(email: str, password: str):

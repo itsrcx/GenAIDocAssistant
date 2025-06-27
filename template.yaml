@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   gen-ai-doc-assistant
 
-  Sample SAM Template for gen-ai-doc-assistant
+  Sample SAM Template for gen-ai-doc-assistant POC-3 python3.13 
 
 Globals:
   Function:
@@ -13,40 +13,57 @@ Globals:
     Architectures:
       - x86_64
 
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: The stage name for the API and resources.
+
 Resources:
+  GenAiDocAssistantApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
 
   GenAiDocAssistantFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
       Handler: src.main.handler
+      Environment:
+        Variables:
+          CLIENT_ID: 57h4bch67a7ua7da17m5cse9u2
+          CLIENT_SECRET: 124dsvopadb4o4n4c16j20env4bpsniet87js87nc31ft5jbpst6
+          STAGE_NAME: !Ref StageName
+
       Events:
-        ApiRoot:
+        ApiEvent:
           Type: Api
           Properties:
             Path: /
             Method: ANY
+            RestApiId:
+              Ref: GenAiDocAssistantApi
         ApiProxy:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: ANY
+            RestApiId:
+              Ref: GenAiDocAssistantApi
       Policies:
         - AmazonS3FullAccess
 
-  GenAiDocAssistantApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: dev
-    DependsOn: GenAiDocAssistantFunction
-
 Outputs:
-  HelloWorldApi:
+  ApiEndpoint:
     Description: "API Gateway endpoint URL for dev stage "
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/dev/docs/"
-  GenAiDocAssistantFunction:
+    Value: !Sub "https://${GenAiDocAssistantApi}.execute-api.${AWS::Region}.amazonaws.com/dev/docs/"
+  Function:
     Description: "GenAiDocAssistantFunction Function ARN"
     Value: !GetAtt GenAiDocAssistantFunction.Arn
-  GenAiDocAssistantFunctionIamRole:
+  FunctionIamRole:
     Description: "Implicit IAM Role created for GenAiDocAssistantFunction"
     Value: !GetAtt GenAiDocAssistantFunctionRole.Arn
